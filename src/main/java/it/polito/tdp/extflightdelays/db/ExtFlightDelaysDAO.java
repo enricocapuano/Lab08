@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import it.polito.tdp.extflightdelays.model.Adiacenza;
 import it.polito.tdp.extflightdelays.model.Airline;
 import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Flight;
@@ -95,26 +96,23 @@ public class ExtFlightDelaysDAO {
 		}
 	}
 	
-	public Map<Airport, Integer> getVoli(int id1){
-		String sql = "SELECT *, AVG(DISTANCE) as media "
-				+ "FROM flights, airports "
-				+ "WHERE (ORIGIN_AIRPORT_ID = ? OR DESTINATION_AIRPORT_ID = ?) "
-				+ "GROUP BY ORIGIN_AIRPORT_ID";
-		Map<Airport, Integer> result = new HashMap<>();
+	public List<Adiacenza> getVoli(){
+		String sql = "SELECT  ORIGIN_AIRPORT_ID, DESTINATION_AIRPORT_ID , AVG(DISTANCE) AS media "
+				+ "FROM flights "
+				+ "GROUP BY ORIGIN_AIRPORT_ID, DESTINATION_AIRPORT_ID";
+		List<Adiacenza> result = new ArrayList<Adiacenza>();
 		
 		try {
 			Connection conn = ConnectDB.getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
-			st.setInt(1, id1);
-			st.setInt(2, id1);
 			ResultSet rs = st.executeQuery();
 
 			while (rs.next()) {
-				Airport airport = new Airport(rs.getInt("ID"), rs.getString("IATA_CODE"), rs.getString("AIRPORT"),
-						rs.getString("CITY"), rs.getString("STATE"), rs.getString("COUNTRY"), rs.getDouble("LATITUDE"),
-						rs.getDouble("LONGITUDE"), rs.getDouble("TIMEZONE_OFFSET"));
-				result.put(airport, (int)rs.getDouble("media"));
+				Adiacenza a = new Adiacenza(rs.getInt("ORIGIN_AIRPORT_ID"), rs.getInt("DESTINATION_AIRPORT_ID"), rs.getInt("media"));
+				result.add(a);
 			}
+			
+			
 
 			conn.close();
 			return result;

@@ -1,6 +1,5 @@
 package it.polito.tdp.extflightdelays.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,22 +31,24 @@ public class Model {
 		dao.loadAllAirports(idMap);
 		Graphs.addAllVertices(this.grafo, idMap.values());
 		
-		for(Airport a1 : this.grafo.vertexSet()) {
-			
-			Airport a2 = null;	
-			Map<Airport, Integer> mappa = dao.getVoli(a1.getId());
+		for(Adiacenza aa1 : dao.getVoli()) {
 			int media = 0;
-			for(Airport a : mappa.keySet()) {
-				media += mappa.get(a);
-				a2 = a;
-			}
+			Airport a1 = this.cercaAirport(aa1.getId1());
+			Airport a2 = this.cercaAirport(aa1.getId2());
 			
-			media = media/2;
-			if(media >= distanza) {
-				Graphs.addEdge(this.grafo, idMap.get(a1.getId()), idMap.get(a2.getId()), media);
-			}
-
+			if(!this.grafo.containsEdge(a1, a2)) {
+				if(aa1.getDistanza() >= distanza) {
+					Graphs.addEdge(this.grafo, a1, a2, aa1.getDistanza());
+				}
 				
+			}
+			else {	
+				media = (int) ((aa1.getDistanza()+this.grafo.getEdgeWeight(this.grafo.getEdge(a2, a1)))/2);
+				this.grafo.removeEdge(a2, a1);
+				if(media >= distanza) {
+					Graphs.addEdge(this.grafo, a1, a2, media);
+				}
+			}
 			
 		}
 		System.out.println("GRAFO CREATO!");
@@ -55,7 +56,23 @@ public class Model {
 		System.out.println("# archi: "+this.grafo.edgeSet().size());
 	}
 	
-	
-	
+	private Airport cercaAirport(int id){
+		for(Airport a : idMap.values()) {
+			if(a.getId() == id) {
+				return a;
+			}
+		}
+		return null;
+	}
+
+
+	public Graph<Airport, DefaultWeightedEdge> getGrafo() {
+		return grafo;
+	}
+
+
+	public void setGrafo(Graph<Airport, DefaultWeightedEdge> grafo) {
+		this.grafo = grafo;
+	}
 	
 }
